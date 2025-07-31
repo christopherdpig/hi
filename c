@@ -143,7 +143,7 @@ getgenv().ConfigsKaitun = {
 			"Bee Egg",
 			"Mythical Egg",
 			"Common Summer Egg",
-            "Uncommon Egg",
+			"Uncommon Egg",
 		},
 		Buy = {
 			"Oasis Egg",
@@ -164,7 +164,6 @@ getgenv().ConfigsKaitun = {
 		["Start Delete Pet At"] = 50,
 		["Upgrade Slot"] = {
 			["Pet"] = {
-				["Kodama"] = { 8, 100, 1 },
 				["Starfish"] = { 8, 100, 1 },
 			},
 			["Limit Upgrade"] = 5,
