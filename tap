@@ -20,7 +20,7 @@ getgenv().Settings = {
     AMOUNT_TO_HATCH = nil,
     PETS_TO_DELETE = {},
     RARITYS_TO_DELETE = {"Common", "Rare", "Epic", "Legendary", "Mythical"},
-    DELETE_ALL_EXCEPT = {"Prismatic Luckyblock","SUPER Luckyblock", "Surge Dragon", "Dual Shock", "Overcharged Robot","Neon Cat","Fortunate Calico", "JACKPOT"},
+    DELETE_ALL_EXCEPT = {"Prismatic Luckyblock","SUPER  Luckyblock", "Surge Dragon", "Dual Shock", "Overcharged Robot","Neon Cat","Fortunate Calico", "JACKPOT"},
     DELETE_PETS_BELOW_POWER = 0,
     USE_INGAME_AUTODELETE = true,
     AUTO_CRAFT_GOLDEN = {"Prismatic Luckyblock"},
@@ -57,7 +57,7 @@ getgenv().Settings = {
     ONLY_FARM_WHEN_SNOWMAN_ELECTRIFIED = false,
     FARM_UNTIL_PETS_ENCHANTED = false,
     TARGET_ENCHANTS = {"Secret Hunter"},
-    FALLBACK_ENCHANT = {"Rainbow Hunter", "Rebirths II"}, -- applies when u have 3 secret hunter pets
+   FALLBACK_ENCHANT = {"Rainbow Hunter", "Rebirths II"}, -- applies when u have 3 secret hunter pets
     ENCHANT_WHEN_TEAM_HITS_X_POWER = 0,
     EQUIP_ONLY_SET_ENCHANT_PET = true,
     AUTO_REBIRTH = true,
@@ -70,17 +70,17 @@ getgenv().Settings = {
     AUTO_BUY_STELLAR_OVERDRIVE = false,
     HIDE_STATUS_AND_STATS_UI = false,
 
-    MAIN_ACCOUNT = "",
-    PETS_TO_TRADE = {"Dual Shock", "Overcharged Robot","Surge Dragon"},
-    MAX_SERVER_PLAYERS = 18,
-    TOKENS_TO_TRADE = 1000, 
-    JOB_ID = "",
+     MAIN_ACCOUNT = "",
+     PETS_TO_TRADE = {"Dual Shock", "Overcharged Robot","Surge Dragon"},
+     MAX_SERVER_PLAYERS = 18,
+     TOKENS_TO_TRADE = 1000, 
+     JOB_ID = "",
 
-    DO_TRADE_PLAZA = false,
-    PETS_TO_LIST = {
-        ["pet1"] = 9999,
-        ["pet2"] = 9999,
+     DO_TRADE_PLAZA = false,
+     PETS_TO_LIST = {
+         ["pet1"] = 9999,
+         ["pet2"] = 9999,
     },
-    PREFER_SECRET_PLAZA = false,
+     PREFER_SECRET_PLAZA = false,
 }
 loadstring(game:HttpGet("https://api.luarmor.net/files/v3/loaders/fb31413cc755d63e0b152c4bf9428db2.lua"))()
