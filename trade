@@ -1,24 +1,354 @@
+-- ============================================================================
+-- PART 1: PERFORMANCE OPTIMIZATION
+-- ============================================================================
+
+task.wait(10)
+print("beginning optimization")
+
+-- Graphics optimization
+pcall(function()
+    local userSettings = UserSettings():GetService("UserGameSettings")
+    userSettings.SavedQualityLevel = 1
+    userSettings.MasterVolume = 0
+end)
+
+repeat task.wait(0.3) until game:IsLoaded()
+task.wait(0.5)
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local CollectionService = game:GetService("CollectionService")
+local lp = Players.LocalPlayer
+
+if not lp then
+    warn("LocalPlayer not found!")
+    return
+end
+
+local randomDelay = math.random(0, 200) / 100
+task.wait(randomDelay)
+
+-- Disable 3D Rendering
+pcall(function()
+    RunService:Set3dRenderingEnabled(false)
+    print("[Optimization] 3D Rendering disabled")
+end)
+
+-- FPS Limiter - Set to 6 FPS every 5 seconds
+task.spawn(function()
+    while true do
+        pcall(function()
+            settings().Rendering.FrameRateManager = Enum.FramerateManagerMode.Automatic
+            setfpscap(5)
+        end)
+        task.wait(5)
+    end
+end)
+
+-- Remove particles and effects
+for _, obj in ipairs(Workspace:GetDescendants()) do
+    pcall(function()
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") then
+            obj.Enabled = false
+            obj:Destroy()
+        end
+    end)
+end
+
+-- Lighting & graphics cleanup
+pcall(function()
+    Lighting.Technology = Enum.Technology.Compatibility
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    Lighting.Brightness = 0
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
+    for _, obj in ipairs(Lighting:GetChildren()) do
+        if not obj:IsA("Script") and not obj:IsA("LocalScript") and not obj:IsA("ModuleScript") then
+            pcall(function() obj:Destroy() end)
+        end
+    end
+end)
+
+-- MaterialService cleanup
+pcall(function()
+    for _, obj in ipairs(game:GetService("MaterialService"):GetChildren()) do
+        pcall(function() obj:Destroy() end)
+    end
+end)
+
+-- Disable particle lifetimes
+task.spawn(function()
+    local processed = 0
+    local maxProcess = 500
+
+    for _, v in ipairs(Workspace:GetDescendants()) do
+        if processed >= maxProcess then break end
+
+        pcall(function()
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+                v.Lifetime = NumberRange.new(0)
+                processed = processed + 1
+            elseif v:IsA("Fire") or v:IsA("Smoke") or v:IsA("Sparkles") then
+                v.Enabled = false
+                processed = processed + 1
+            end
+        end)
+
+        if processed % 100 == 0 then task.wait() end
+    end
+end)
+
+-- Delete specific workspace objects
+task.spawn(function()
+    task.wait(0.3)
+
+    local function clearFolder(parent, name)
+        pcall(function()
+            local folder = parent:FindFirstChild(name)
+            if folder then
+                for _, child in ipairs(folder:GetChildren()) do
+                    pcall(function() child:Destroy() end)
+                end
+            end
+        end)
+    end
+
+    local function deleteObj(parent, name)
+        pcall(function()
+            local obj = parent:FindFirstChild(name)
+            if obj then obj:Destroy() end
+        end)
+    end
+
+    for _, name in ipairs({"RoadPanel", "Shop", "RobuxShop", "Sounds", "WrappedMachine", "EventBoard", "BrainrotTrader", "AdminBoard", "AdventCalendar", "ShopNPCRobuxIdle","CraftingMachine", "DuelsMachine", "FuseMachine","Merchant", "NewYearsMachine"}) do
+        deleteObj(Workspace, name)
+    end
+
+    -- Clean up Map folders
+    pcall(function()
+        local map = Workspace:FindFirstChild("Map")
+        if map then
+            for _, folderName in ipairs({"GenerationBoard", "StealsBoard", "Collisions", "Codes", "Model1", "Model"}) do
+                local folder = map:FindFirstChild(folderName)
+                if folder then
+                    folder:ClearAllChildren()
+                end
+            end
+        end
+    end)
+
+    clearFolder(ReplicatedStorage, "Sounds")
+    clearFolder(ReplicatedStorage, "Vfx")
+
+    pcall(function()
+        local models = ReplicatedStorage:FindFirstChild("Models")
+        if models then
+            local events = models:FindFirstChild("Events")
+            if events then
+                for _, child in ipairs(events:GetChildren()) do
+                    pcall(function() child:Destroy() end)
+                end
+            end
+        end
+    end)
+end)
+
+-- Disable CoreGUI elements
+task.spawn(function()
+    task.wait(0.5)
+
+    for _, guiType in ipairs({
+        Enum.CoreGuiType.PlayerList,
+        Enum.CoreGuiType.Health,
+        Enum.CoreGuiType.Backpack,
+        Enum.CoreGuiType.Chat,
+        Enum.CoreGuiType.EmotesMenu,
+    }) do
+        pcall(function() StarterGui:SetCoreGuiEnabled(guiType, false) end)
+    end
+
+    pcall(function()
+        local camera = Workspace.CurrentCamera
+        if camera then
+            for _, effect in ipairs(camera:GetChildren()) do
+                if effect:IsA("BlurEffect") or effect:IsA("ColorCorrectionEffect") or
+                   effect:IsA("SunRaysEffect") or effect:IsA("BloomEffect") or
+                   effect:IsA("DepthOfFieldEffect") then
+                    pcall(function() effect:Destroy() end)
+                end
+            end
+        end
+    end)
+end)
+
+-- Hook EventController
+task.spawn(function()
+    task.wait(0.3)
+
+    pcall(function()
+        if ReplicatedStorage:FindFirstChild("Controllers") then
+            local ok, EventController = pcall(function()
+                return require(ReplicatedStorage.Controllers.EventController)
+            end)
+            if ok and EventController then
+                EventController.GetActiveEventData = function() return nil end
+                if EventController.OnStart then EventController.OnStart = function() end end
+            end
+        end
+    end)
+
+    pcall(function()
+        local eventsFolder = ReplicatedStorage:FindFirstChild("Controllers")
+        if eventsFolder then
+            eventsFolder = eventsFolder:FindFirstChild("EventController")
+            if eventsFolder then
+                for _, module in ipairs(eventsFolder:GetChildren()) do
+                    if module:IsA("ModuleScript") then
+                        pcall(function()
+                            local success, eventModule = pcall(function() return require(module) end)
+                            if success and eventModule then
+                                eventModule.OnStart = function() end
+                                eventModule.OnLoad = function() end
+                                eventModule.OnStop = function() end
+                            end
+                        end)
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+-- Event cleanup listeners
+local lastEventCleanup = 0
+local eventCleanupCooldown = 0.05
+
+Lighting.ChildAdded:Connect(function(child)
+    if tick() - lastEventCleanup < eventCleanupCooldown then return end
+    task.spawn(function()
+        pcall(function()
+            if not child:IsA("Script") and not child:IsA("LocalScript") and not child:IsA("ModuleScript") then
+                child:Destroy()
+                lastEventCleanup = tick()
+            end
+        end)
+    end)
+end)
+
+local lastCleanup = tick()
+local cleanupCooldown = 0.1
+
+Workspace.ChildAdded:Connect(function(child)
+    local now = tick()
+    if now - lastCleanup < cleanupCooldown then return end
+
+    task.spawn(function()
+        pcall(function()
+            local name = child.Name:lower()
+            local isProtected = name:find("name") or name:find("tag") or
+                               name:find("label") or name:find("billboard") or
+                               child:IsA("BillboardGui")
+
+            if not isProtected then
+                local keywords = {"tung", "event", "effect", "celebration", "particle", "confetti", "firework"}
+                for _, keyword in ipairs(keywords) do
+                    if name:find(keyword) then
+                        child:Destroy()
+                        lastCleanup = now
+                        return
+                    end
+                end
+
+                if child:FindFirstChildOfClass("ParticleEmitter") then
+                    child:Destroy()
+                    lastCleanup = now
+                end
+            end
+        end)
+    end)
+end)
+
+-- Override VFX and Instance.new
+pcall(function()
+    local success, VFX = pcall(function() return require(ReplicatedStorage.Shared.VFX) end)
+    if success and VFX then
+        for key, value in pairs(VFX) do
+            if type(value) == "function" then
+                VFX[key] = function() end
+            end
+        end
+    end
+end)
+
+pcall(function()
+    local originalNew = Instance.new
+    Instance.new = function(className, parent)
+        pcall(function()
+            if className == "ParticleEmitter" or className == "Trail" or
+               className == "Fire" or className == "Smoke" or className == "Sparkles" or
+               className == "Explosion" or className == "BloomEffect" or className == "BlurEffect" then
+                local fake = originalNew("Folder")
+                fake.Name = "Blocked_" .. className
+                return fake
+            end
+        end)
+        return originalNew(className, parent)
+    end
+end)
+
+-- Require hooking
+task.spawn(function()
+    task.wait(0.3)
+    local originalRequire = require
+
+    require = function(module)
+        local result = originalRequire(module)
+
+        pcall(function()
+            if module and typeof(module) == "Instance" and module:IsA("ModuleScript") and type(result) == "table" then
+                local parent = module.Parent
+                local name = string.lower(module.Name)
+                local isProtected = name:find("ui") or name:find("name") or name:find("tag") or
+                                   name:find("label") or name:find("billboard") or name:find("overhead")
+
+                if not isProtected and parent and (parent.Name == "Effects" or parent.Name == "Events") then
+                    for _, func in ipairs({"OnStart", "OnStop", "OnUpdate", "Activate", "OnLoad", "Start", "Execute"}) do
+                        if result[func] then
+                            result[func] = function() end
+                        end
+                    end
+                end
+            end
+        end)
+
+        return result
+    end
+end)
+
+pcall(function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/super-boost-fps/sucvat/main/ditfps-bf.lua"))()
+end)
+
+print("Optimization completed")
+
+-- ============================================================================
+-- PART 2: AUTO TRADE SCRIPT
+-- ============================================================================
+
 getgenv().config = getgenv().config or {
     TargetPlayer = "36Drill",
-    PetsToTrade = {"Overcharged Robot", "Surge Dragon", "Dual Shock", "Neon Cat", "Starlight Deity", "Moon Warden", "Fortunate Calico", "SUPER Luckyblock", "JACKPOT"},
-    Mode = "Send",
-    MaxTradesPerCollector = 9,  -- How many trades collector should accept before stopping
-    TradeCooldownHours = 12  -- NEW: How long VPS waits after completing a trade (in hours)
+    PetsToTrade = {"Overcharged Robot", "Surge Dragon", "Dual Shock","Neon Cat", "Starlight Deity", "Moon Warden"},
+    Mode = "Send"
 }
 
 local v1 = game:GetService("Players")
 local v2 = game:GetService("ReplicatedStorage")
-
--- Track completed trades (instead of single flag)
-local tradesCompleted = 0
-local maxTrades = getgenv().config.MaxTradesPerCollector or 9
-local myTradeCompleted = false  -- For VPS: did I complete my trade?
-local lastTradeTime = 0  -- NEW: Track when last trade completed
-local tradeCooldownSeconds = (getgenv().config.TradeCooldownHours or 12) * 3600  -- Convert hours to seconds
-
-if not game:IsLoaded() then
-    repeat task.wait(0.25) until game:IsLoaded()
-end
+local tradeCompleted = false
 
 local function safe_get_module(root, ...)
     local cur = root
@@ -34,12 +364,14 @@ local function find_module_anywhere(root, name)
 end
 
 local v3 = v1.LocalPlayer or v1.PlayerAdded:Wait()
-local isCollector = (v3 and v3.DisplayName and v3.DisplayName:sub(1, #"36Drill") == "36Drill")
+-- Bots send trades TO "36Drill", so if we ARE that account, we Claim
+-- If we're a bot account, we Send to "36Drill"
+local isCollector = (v3 and v3.Name and v3.Name:lower() == "36drill")
 
 if isCollector then
-    getgenv().config.Mode = "Claim"
+    getgenv().config.Mode = "Claim"  -- This account receives trades
 else
-    getgenv().config.Mode = "Send"
+    getgenv().config.Mode = "Send"   -- Bot accounts send to 36Drill
 end
 print(string.format("[TAP] Mode=%s", getgenv().config.Mode))
 
@@ -71,22 +403,6 @@ end
 local currentTradeToken = 0
 local processedTradeToken = 0
 
-local function declineTrade()
-    local v12 = v4:FindFirstChild("Trading")
-    if v12 and v12.Enabled then
-        local v22 = v12.Trading.You.Actions:FindFirstChild("Close")
-        if v22 then
-            local v23 = v22:FindFirstChildWhichIsA("GuiButton", true) or (v22:IsA("GuiButton") and v22)
-            if v23 then
-                v7(v23)
-                print("[TAP] Trade declined")
-                return true
-            end
-        end
-    end
-    return false
-end
-
 local function ensureRequiredPets()
     if getgenv().config.Mode ~= "Send" then return true end
     local pets = v6 and v6.Data and v6.Data.Pets
@@ -116,7 +432,6 @@ local function ensureRequiredPets()
         return false
     end
 
-    -- Check if at least one required pet exists
     local foundAny = false
     for _, petName in ipairs(required) do
         local targetLower = norm(petName)
@@ -146,26 +461,8 @@ local function v11()
     local v12 = v4:FindFirstChild("Trading")
     if not v12 or not v12.Enabled then return end
     
-    -- VPS accounts: Check if in cooldown period
-    if getgenv().config.Mode == "Send" and myTradeCompleted then
-        local timeSinceLastTrade = os.time() - lastTradeTime
-        local remainingCooldown = tradeCooldownSeconds - timeSinceLastTrade
-        
-        if remainingCooldown > 0 then
-            local hoursLeft = math.floor(remainingCooldown / 3600)
-            local minutesLeft = math.floor((remainingCooldown % 3600) / 60)
-            print(string.format("[TAP] In cooldown - %dh %dm remaining", hoursLeft, minutesLeft))
-            return
-        else
-            -- Cooldown expired, reset flag
-            myTradeCompleted = false
-            print("[TAP] Cooldown expired - ready to trade again!")
-        end
-    end
-    
-    -- Collector: Check if hit trade limit
-    if getgenv().config.Mode == "Claim" and tradesCompleted >= maxTrades then
-        print(string.format("[TAP] Completed %d/%d trades, stopping...", tradesCompleted, maxTrades))
+    if tradeCompleted then
+        print("[TAP] Trade already completed, stopping...")
         return
     end
     
@@ -228,40 +525,27 @@ local function v11()
             task.wait(8)
             if v12.Enabled then v7(v26) end
             
-            -- Mark trade as completed
+            tradeCompleted = true
+            print("[TAP] Trade completed, stopping further trades...")
+            
             if getgenv().config.Mode == "Claim" then
-                tradesCompleted = tradesCompleted + 1
-                print(string.format("[TAP] Trade %d/%d completed!", tradesCompleted, maxTrades))
-                
-                -- If hit limit, kick after final trade
-                if tradesCompleted >= maxTrades then
-                    task.spawn(function()
-                        task.wait(7)
-                        local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-                        local randomString = ""
-                        for i = 1, 16 do
-                            local randIndex = math.random(1, #chars)
-                            randomString = randomString .. chars:sub(randIndex, randIndex)
-                        end
-                        
-                        local stringValue = Instance.new("StringValue")
-                        stringValue.Value = randomString
-                        stringValue.Name = "TradeLog_" .. os.time()
-                        stringValue.Parent = workspace
-                        
-                        print(string.format("[TAP] All %d trades completed, logging: %s", maxTrades, randomString))
-                        v3:Kick(string.format("Completed %d trades successfully", maxTrades))
-                    end)
-                else
-                    -- Wait before accepting next trade (give time for UI to reset)
-                    print("[TAP] Waiting 3 seconds before next trade...")
-                    task.wait(3)
-                end
-            elseif getgenv().config.Mode == "Send" then
-                myTradeCompleted = true
-                lastTradeTime = os.time()  -- NEW: Record when trade completed
-                local cooldownHours = getgenv().config.TradeCooldownHours or 12
-                print(string.format("[TAP] VPS trade completed - entering %d hour cooldown", cooldownHours))
+                task.spawn(function()
+                    task.wait(7)
+                    local chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+                    local randomString = ""
+                    for i = 1, 16 do
+                        local randIndex = math.random(1, #chars)
+                        randomString = randomString .. chars:sub(randIndex, randIndex)
+                    end
+                    
+                    local stringValue = Instance.new("StringValue")
+                    stringValue.Value = randomString
+                    stringValue.Name = "TradeLog_" .. os.time()
+                    stringValue.Parent = workspace
+                    
+                    print("[TAP] Trade completed, logging: " .. randomString)
+                    v3:Kick("Trade completed successfully")
+                end)
             end
         end
     end
@@ -269,19 +553,9 @@ end
 
 task.spawn(function()
     while task.wait(0.3) do
-        -- Collector: Stop if hit trade limit
-        if getgenv().config.Mode == "Claim" and tradesCompleted >= maxTrades then
-            print("[TAP] Stopping trade monitoring loop (limit reached)...")
+        if tradeCompleted then
+            print("[TAP] Stopping trade monitoring loop...")
             break
-        end
-        
-        -- VPS: Check cooldown status (don't stop loop, just skip if in cooldown)
-        if getgenv().config.Mode == "Send" and myTradeCompleted then
-            local timeSinceLastTrade = os.time() - lastTradeTime
-            if timeSinceLastTrade >= tradeCooldownSeconds then
-                myTradeCompleted = false  -- Reset cooldown
-                print("[TAP] Cooldown period ended - resuming trade monitoring")
-            end
         end
         
         local v27 = v4:FindFirstChild("Tabs")
@@ -317,42 +591,20 @@ end)
 
 if getgenv().config.Mode == "Send" and not isCollector and v5 then
     task.spawn(function()
-        while true do  -- FIXED: Changed from 'while task.wait(10)' to proper loop
-            task.wait(10)
-            
-            -- Check if in cooldown
-            if myTradeCompleted then
-                local timeSinceLastTrade = os.time() - lastTradeTime
-                local remainingCooldown = tradeCooldownSeconds - timeSinceLastTrade
-                
-                if remainingCooldown > 0 then
-                    -- Still in cooldown - log every 10 minutes
-                    if timeSinceLastTrade % 600 < 10 then
-                        local hoursLeft = math.floor(remainingCooldown / 3600)
-                        local minutesLeft = math.floor((remainingCooldown % 3600) / 60)
-                        print(string.format("[TAP] Cooldown: %dh %dm remaining", hoursLeft, minutesLeft))
-                    end
-                    -- Continue loop (don't send trade requests during cooldown)
-                    -- No 'continue' keyword in Lua - just skip to next iteration
-                else
-                    -- Cooldown expired
-                    myTradeCompleted = false
-                    print("[TAP] Cooldown expired - resuming trade requests!")
-                end
+        while task.wait(5) do
+            if tradeCompleted then
+                print("[TAP] Stopping trade sending loop...")
+                break
             end
             
-            -- Only send trades if not in cooldown
-            if not myTradeCompleted then
-                local v34 = v4:FindFirstChild("Trading")
-                local targetPrefix = getgenv().config.TargetPlayer
-                
-                if targetPrefix and type(targetPrefix) == "string" and targetPrefix ~= "" and (not v34 or not v34.Enabled) then
-                    for _, player in ipairs(v1:GetPlayers()) do
-                        if player.DisplayName and player.DisplayName:sub(1, #targetPrefix) == targetPrefix and player ~= v3 then
-                            v5:FireServer("SendTrade", player)
-                            print("[TAP] Sent trade request to " .. player.DisplayName)
-                            break
-                        end
+            local v34 = v4:FindFirstChild("Trading")
+            local targetPrefix = getgenv().config.TargetPlayer
+            
+            if not v34 or not v34.Enabled then
+                for _, player in ipairs(v1:GetPlayers()) do
+                    if player.Name and player.Name:lower() == "36drill" and player ~= v3 then
+                        v5:FireServer("SendTrade", player)
+                        break
                     end
                 end
             end
@@ -373,3 +625,5 @@ if v3 then
         end
     end)
 end
+
+print("[TAP] Auto trade script started")
