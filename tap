@@ -49,9 +49,7 @@ getgenv().Settings = {
     RAMOUNT_TO_CRAFT = 5,
     AUTO_CRAFT_KEYS = {"Mythical", "Legendary"},
     AUTO_USE_KEYS = true,
-    
-    REJOIN_WHEN_BELOW_X_HPM = 40,
-    
+        
     USE_TOTEM = {
         "Totem Of Hatch Speed",
         "Totem Of Secret Luck",
