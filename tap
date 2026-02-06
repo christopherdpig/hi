@@ -16,6 +16,7 @@ getgenv().Settings = {
     EQUIP_BEST_PETS = true,
     IGNORE_SECRET_WHEN_EQUIPPING = false,
     AUTO_BUY_SPACE_WORLD = true,
+    REJOIN_WHEN_BELOW_X_HPM = 40,
 
     EGG_TO_HATCH = "Lucky Event",
     AMOUNT_TO_HATCH = nil,
