@@ -12,10 +12,10 @@ getgenv().Settings = {
     REQUIRE_STARTER_UPGRADES = true,
 
     AUTO_CLICK = true,
-    UNLOCK_ALL_ISLANDS = true,
+    UNLOCK_ALL_ISLANDS = false,
     EQUIP_BEST_PETS = true,
     IGNORE_SECRET_WHEN_EQUIPPING = false,
-    AUTO_BUY_SPACE_WORLD = true,
+    AUTO_BUY_SPACE_WORLD = false,
     REJOIN_WHEN_BELOW_X_HPM = 40,
 
     EGG_TO_HATCH = "Lucky Event",
